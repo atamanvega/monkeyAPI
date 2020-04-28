@@ -1,0 +1,1 @@
+{"virtualbox":{"/home/vagrant/monkeyAPI":{"type":null,"mount_options":["uid=1000","gid=1000"],"guestpath":"/home/vagrant/monkeyAPI","hostpath":"/Applications/MAMP/htdocs/monkeyAPI","disabled":false,"__vagrantfile":true},"/vagrant":{"guestpath":"/vagrant","hostpath":"/Applications/MAMP/htdocs/monkeyAPI","disabled":false,"__vagrantfile":true}}}
