@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::resource('users', 'User\UserController')->except(['create', 'edit']);
 Route::put('/users/changeUserStatus/{user}', 'User\UserController@changeUserStatus');
 Route::get('users/verify/{token}', 'User\UserController@verify')->name('verify');
+Route::post('oauth/token', '\Laravel\Passport\Http\Controllers\AccessTokenController@issueToken');
 
 Route::resource('customers', 'Customer\CustomerController')->except(['create', 'edit']);
 

@@ -82,6 +82,9 @@ class Handler extends ExceptionHandler
             case $exception instanceof HttpException:
                 return $this->errorResponse($exception->getMessage(), $exception->getStatusCode());
                 break;
+             case $exception instanceof TokenMismatchException:
+                return redirect()->back()->withInput($request->input());
+                break;
             default:
                 if (config('app.debug')) {
                     return parent::render($request, $exception);
@@ -100,11 +103,19 @@ class Handler extends ExceptionHandler
      */
     protected function unauthenticated($request, AuthenticationException $exception)
     {
-        return $this->errorResponse($exception->getMessage(), 401);
+        return $this->isFrontend($request) ? redirect()->guest('login') : $this->errorResponse($exception->getMessage(), 401);
     }
 
     protected function convertValidationExceptionToResponse(ValidationException $e, $request)
     {
+        if ($this->isFrontend($request)) {
+            return $request->ajax() ? response()->json($e->errors(), 422) : redirect()->back()->withInput($request->input())->withErrors($e->errors());
+        }
         return $this->errorResponse($e->errors(), $e->status);
+    }
+
+    private function isFrontend($request)
+    {
+        return $request->acceptsHtml() && collect($request->route()->middleware())->contains('web');
     }
 }

@@ -5,10 +5,15 @@ namespace App\Http\Controllers\Customer;
 use App\Customer;
 use App\Http\Controllers\ApiController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class CustomerController extends ApiController
 {
+    public function __construct()
+    {
+        parent::__construct();
+    }
     /**
      * Display a listing of the resource.
      *
@@ -16,6 +21,7 @@ class CustomerController extends ApiController
      */
     public function index()
     {
+        $this->allowedVerifiedUserAction();
         $customers = Customer::all();
         return $this->showAll($customers);
     }
@@ -28,6 +34,7 @@ class CustomerController extends ApiController
      */
     public function store(Request $request)
     {
+        $this->allowedVerifiedUserAction();
         $rules = [
             'name' => 'required',
             'surname' => 'required',
@@ -37,8 +44,7 @@ class CustomerController extends ApiController
 
         $this->validate($request, $rules);
         $data = $request->all();
-        $data['created_by_user_id'] = null; //For now, we have to add the user id who creates the customer
-        $data['modified_by_user_id'] = null;
+        $data['created_by_user_id'] = Auth::user()->id;
         $data['photo'] = $request->photo->store('');
 
         $customer = Customer::create($data);
@@ -53,6 +59,7 @@ class CustomerController extends ApiController
      */
     public function show(Customer $customer)
     {
+        $this->allowedVerifiedUserAction();
         return $this->showOne($customer);
     }
 
@@ -65,6 +72,7 @@ class CustomerController extends ApiController
      */
     public function update(Request $request, Customer $customer)
     {
+        $this->allowedVerifiedUserAction();
         $rules = [
             'id' =>'unique:customers,id,' . $customer->customer_id,
             'photo' => 'image',
@@ -82,7 +90,7 @@ class CustomerController extends ApiController
         if (!$customer->isDirty()) {
             return $this->errorResponse('Set at least a different value to update the customer', 422);
         }
-        //Falta modificar el id del uusario que modificó el producto
+        $customer->modified_by_user_id = Auth::user()->id;
         $customer->save();
         return $this->showOne($customer);
     }
@@ -95,6 +103,7 @@ class CustomerController extends ApiController
      */
     public function destroy(Customer $customer)
     {
+        $this->allowedVerifiedUserAction();
         $customer->delete();
         Storage::delete($customer->photo);
         return $this->showOne($customer);

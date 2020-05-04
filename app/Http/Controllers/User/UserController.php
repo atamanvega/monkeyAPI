@@ -5,9 +5,18 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\ApiController;
 use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends ApiController
 {
+    public function __construct()
+    {
+        $this->middleware('auth:api')->except(['verify']);
+        $this->middleware('can:view,user')->only('show');
+        $this->middleware('can:update,user')->only('update');
+        $this->middleware('can:delete,user')->only('destroy');
+        $this->middleware('can:create,user')->only('store');
+    }
     /**
      * Display a listing of the resource.
      *
@@ -15,6 +24,7 @@ class UserController extends ApiController
      */
     public function index()
     {
+        $this->authorize('index', Auth::user());
         $users = User::all();
         return $this->showAll($users);
     }
@@ -105,6 +115,7 @@ class UserController extends ApiController
      */
     public function changeUserStatus(Request $request, User $user)
     {
+        $this->authorize('changeUserStatus', Auth::user());
         $rules = [
             'admin' => 'in:' . User::USER_REGULAR . ',' . User::USER_ADMIN,
         ];
