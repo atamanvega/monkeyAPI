@@ -15,7 +15,6 @@ class UserController extends ApiController
         $this->middleware('can:view,user')->only('show');
         $this->middleware('can:update,user')->only('update');
         $this->middleware('can:delete,user')->only('destroy');
-        $this->middleware('can:create,user')->only('store');
     }
     /**
      * Display a listing of the resource.
@@ -37,6 +36,7 @@ class UserController extends ApiController
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Auth::user());
         $rules = [
             'name' => 'required',
             'email' =>'required|email|unique:users',

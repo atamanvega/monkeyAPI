@@ -29,8 +29,6 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
         Passport::routes();
-        Passport::tokensExpireIn(Carbon::now()->addHours(24));
-        Passport::refreshTokensExpireIn(Carbon::now()->addDays(30));
 
         Gate::define('verified-user-action', function ($user) {
             return $user->isVerified();

@@ -13,11 +13,11 @@ use Laravel\Passport\HasApiTokens;
 class User extends Authenticatable
 {
     use Notifiable, HasApiTokens, SoftDeletes;
-    const USER_VERIFIED = '1';
-    const USER_NOT_VERIFIED = '0';
+    const USER_VERIFIED = 1;
+    const USER_NOT_VERIFIED = 0;
 
-    const USER_ADMIN = '1';
-    const USER_REGULAR = '0';
+    const USER_ADMIN = 1;
+    const USER_REGULAR = 0;
     /**
      * The attributes that are mass assignable.
      *
