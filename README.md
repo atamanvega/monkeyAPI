@@ -10,9 +10,8 @@ It has been done in Laravel 7 PHP Framework with Vagrant and Homestead.
 ## Prerequisites
 The Laravel framework has a few system requirements. All of these requirements are satisfied by the [Laravel Homestead](https://laravel.com/docs/7.x/homestead) virtual machine, so it's highly recommended that you use Homestead as your local Laravel development environment.
 
-However, if you are not using Homestead, you will need to make sure your server meets the following requirements:
-
 - PHP >= 7.2.5
+- Composer
 - BCMath PHP Extension
 - Ctype PHP Extension
 - Fileinfo PHP extension
@@ -26,18 +25,53 @@ However, if you are not using Homestead, you will need to make sure your server 
 ## Installation steps
 Follow the bellow steps to install and set up the application.
 
-**Clone the Application**
-
 You can download the ZIP file or git clone from my repo into your project directory.
 
-**Option 1 - In case you are not using Homestead**
-
-- In terminal go to your project directory and Runtime
+- In terminal go to your project directory and execute the following command
 ```
 composer install
 ```
+- Rename the .env.example file to .env file in the project root folder
 
-- Then copy the .env.example file to .env file in the project root folder
+
+**Option 1 - Using Vagrant and Homestead**
+
+Laravel strives to make the entire PHP development experience delightful, including your local development environment. [Vagrant](https://www.vagrantup.com/) provides a simple, elegant way to manage and provision Virtual Machines.
+
+- Download and install [Virtual Box's latest version](https://www.virtualbox.org/wiki/Downloads)
+
+You can install another Virtual Machine. But I strongly recommended installing Virtual Box. In case you want to install other VM, please check the following [link](https://laravel.com/docs/7.x/homestead#first-steps) for more info.
+
+- Download and install [Vagrant's latest version](https://www.vagrantup.com/downloads.html)
+
+-  In the project directory generate the Homestead yaml file
+```
+php vendor/bin/homestead make
+```
+-  Modify the project URL in the file Homestead.yaml
+```
+sites:
+    -
+        map: <name-of-your-app>.test
+```
+- In case you don't have SSh Keys created, you have to execute the following command to create it
+```
+ssh-keygen -t rsa -b4096
+```
+- Add to your hosts file the url for the project
+```
+<ip-used-in-Homestead.yaml> <url-used-in-Homestead.yaml>
+```
+- Create the VM with the command
+```
+//The first time it is going to take a while, since it will get the homestead box
+vagrant up
+```
+- When the VM is up and running, you can inside with the command
+```
+vagrant ssh
+```
+**Option 2 - In case you are not using Homestead**
 
 - Edit the .env file and fill all required data for the bellow variables
 ```
@@ -49,10 +83,11 @@ DB_DATABASE=name_of_your_database
 DB_USERNAME=db_user_name
 DB_PASSWORD=db_password
 ```
+- Make your storage and bootstrapp folder writable by your application user.
 
 **Common Steps independently of the option taken**
 
- - Please note that in case of using Option 2 - Homestead, some of the commands have to be executed inside the VM. I will add a comment inside the code box in that cases
+ - Please note that in case of using Option 1 - Using Vagrant and Homestead, the commands have to be executed in project folder inside the VM.
 
 - Edit the .env file and fill all required data regarding email service. Right now it is configures to use log service. So you could find the emails send in the file **storage/logs/laravel.log**. For more info about how to config mail services, please visit [Laravel Documentation](https://laravel.com/docs/7.x/mail#introduction)
 ```
@@ -69,7 +104,6 @@ MAIL_FROM_NAME="${APP_NAME}"
 ```
 php artisan key:generate
 ```
-- Make your storage and bootstrapp folder writable by your application user.
 - Create all the necessary tables need for the application by runing the bellow command.
 ```
   php artisan migrate
@@ -77,11 +111,77 @@ php artisan key:generate
 - Add the first admin user into the table to be able to start using the API
 ```
  php artisan db:seed
- // email:admin
+ // email:admin@example.com
+ // password: secret
+ // admin: 1
+ // verified: 1
  ```
-
- - Fill default data if your need by running bellow command.
+ - Generate Encryption keys
 ```
- php artisan db:seed
+ php artisan passport:install
+ ```
+ - Add a client for oauth2 with grant_type = password. **Please write down the client_id and client_secret.**
+```
+ php artisan passport:client --password
  ```
 
+## API endpoints and routes
+
+**WEB routes**
+-  GET  | "/" --> Access to the frontend to create oAuth2 clients via web
+
+**API routes**
+
+**Get user access tokens**
+- POST  "oauth/token"
+```
+  {
+  	"grant_type": "password",
+  	"client_id": <Client ID we wrote down>, //required
+	  "client_secret": <Client ID we wrote down>, //required
+	  "username": <User email>, //required
+	  "password": <User password>, //require
+  }
+```
+
+**Customer** (Regular and admin users can manage customers if they are verified)
+- POST  "customers"
+```
+  {
+  	"name": <Customer first name>, //required
+	  "surname": <Customer last name>, //required
+	  "id": <Customer ID number>, //required
+	  "photo": <Img file>,
+  }
+```
+- GET  "customers"
+- DELETE  "customers/{customer}"
+- GET  "customers/{customer}"
+- PUT / PATCH  "customers/{customer}"
+
+**User**
+- POST  "users" --> Just admin users can create other users
+```
+  {
+  	"name": <User full name>, //required
+	  "email": <User email>, //required and unique
+	  "password": <User Password>, //required
+	  "password_confirmation": <User password confirmation>, //Required an equal to password
+  }
+```
+- GET  "users" --> Just admin users can get the user list
+- DELETE  "users/{user}" --> Admin user can delete any other user, a regular user can delete itself
+- GET  "users/{user}" --> Admin user can get any other user's info, a regular user can get your own info
+- PUT / PATCH  "users/{user}" --> Admin user can update any other user's info, a regular user can update its own info
+- PUT "users/changeUserStatus/{user}" --> Just admin users can change user status (admin or regular)
+```
+  {
+  	"admin": 1 | 0, //required
+  }
+```
+
+## Frontend version
+
+The project comes with a frontend version to make easier to deal with oAuth2 client and access token managment. To use the frontend part just open your browser and navigate to the project URL.
+
+Use the admin user credentials to log in
