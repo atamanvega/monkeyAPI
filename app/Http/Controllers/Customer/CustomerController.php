@@ -45,7 +45,9 @@ class CustomerController extends ApiController
         $this->validate($request, $rules);
         $data = $request->all();
         $data['created_by_user_id'] = Auth::user()->id;
-        $data['photo'] = $request->photo->store('');
+        if ($request->hasFile('photo')) {
+            $data['photo'] = $request->photo->store('');
+        }
 
         $customer = Customer::create($data);
         return $this->showOne($customer, 201);
